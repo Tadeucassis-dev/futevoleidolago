@@ -1,4 +1,4 @@
-package com.futevoleidolago.backend.dto;
+package com.futevoleidolago.backend.RequestDTO;
 
 public class LoginRequestDTO {
     private String email;
