@@ -39,6 +39,7 @@ public class AlunoController {
             aluno.setTelefone(alunoAtualizado.getTelefone());
             aluno.setDataNascimento(alunoAtualizado.getDataNascimento());
             aluno.setAtivo(alunoAtualizado.getAtivo());
+            aluno.setDiaVencimentoMensalidade(alunoAtualizado.getDiaVencimentoMensalidade());
             Aluno alunoSalvo = alunoRepository.save(aluno);
             return ResponseEntity.ok(alunoSalvo);
         } else {

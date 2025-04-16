@@ -20,6 +20,8 @@ public class Aluno {
     private String email;
     private String telefone;
     private LocalDate dataNascimento;
+    private Integer diaVencimentoMensalidade;
     private Boolean ativo;
+
 
 }
