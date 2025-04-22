@@ -1,91 +1,70 @@
 package com.futevoleidolago.backend.service;
 
-import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.type.PhoneNumber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import com.futevoleidolago.backend.repositories.AlunoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
 @Service
 public class MessagingService {
+    private final JavaMailSender javaMailSender;
+    private final AlunoRepository alunoRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(MessagingService.class);
-
-    private final JavaMailSender mailSender;
+    // Substitua pelo seu API key da CallMeBot
+    private static final String CALLMEBOT_API_KEY = "your_callmebot_api_key";
     private static final String CALLMEBOT_URL = "https://api.callmebot.com/whatsapp.php";
-    private static final String API_KEY = "SUA_API_KEY"; // Substitua pela sua API Key
-    private static final String PHONE_NUMBER = "+5561985785880"; // Seu número WhatsApp
 
-    @Value("${twilio.account.sid}")
-    private String accountSid;
-
-    @Value("${twilio.auth.token}")
-    private String authToken;
-
-    @Value("${twilio.whatsapp.number}")
-    private String twilioNumber;
-
-    private boolean twilioInitialized = false;
-
-    public MessagingService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    @Autowired
+    public MessagingService(JavaMailSender javaMailSender, AlunoRepository alunoRepository) {
+        this.javaMailSender = javaMailSender;
+        this.alunoRepository = alunoRepository;
     }
 
-    private void initializeTwilio() {
-        if (!twilioInitialized) {
-            try {
-                Twilio.init(accountSid, authToken);
-                twilioInitialized = true;
-                logger.info("Twilio inicializado com sucesso.");
-            } catch (Exception e) {
-                logger.error("Erro ao inicializar Twilio: {}", e.getMessage());
-                throw new RuntimeException("Falha na inicialização do Twilio: " + e.getMessage());
-            }
-        }
-    }
+    public void sendWhatsApp(String to, String message) throws Exception {
+        // Normalizar o número para o formato E.164 (ex.: +5511999999999)
+        String normalizedNumber = normalizePhoneNumber(to);
 
-    public void sendEmail(String to, String subject, String text) {
-        logger.info("Tentando enviar email para {} com assunto: {}", to, subject);
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(text);
-            message.setFrom("futevoleidolago@gmail.com");
-            mailSender.send(message);
-            logger.info("Email enviado com sucesso para {}", to);
-        } catch (Exception e) {
-            if (e.getCause() instanceof UnknownHostException) {
-                logger.error("Falha ao resolver o host smtp.gmail.com: {}", e.getMessage());
-                throw new RuntimeException("Não foi possível conectar ao servidor de email devido a problemas de rede ou DNS.");
-            }
-            logger.error("Erro ao enviar email para {}: {}", to, e.getMessage());
-            throw new RuntimeException("Falha ao enviar email: " + e.getMessage());
-        }
-    }
+        // Montar a URL da requisição para CallMeBot
+        String urlString = CALLMEBOT_URL + "?phone=" + normalizedNumber +
+                "&text=" + URLEncoder.encode(message, StandardCharsets.UTF_8) +
+                "&apikey=" + CALLMEBOT_API_KEY;
 
-    public void sendWhatsAppMessage(String to, String message) throws Exception {
-        String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
-        String urlString = String.format("%s?phone=%s&text=%s&apikey=%s",
-                CALLMEBOT_URL, PHONE_NUMBER, encodedMessage, API_KEY);
-
+        // Fazer a requisição HTTP
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
+        conn.setDoOutput(true);
 
+        // Verificar o código de resposta
         int responseCode = conn.getResponseCode();
         if (responseCode != 200) {
-            throw new RuntimeException("Erro ao enviar mensagem WhatsApp: Código " + responseCode);
+            throw new RuntimeException("Erro ao enviar mensagem WhatsApp: HTTP " + responseCode);
         }
+
+        conn.disconnect();
     }
+
+    public void sendEmail(String to, String subject, String text) {
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setTo(to);
+        msg.setSubject(subject);
+        msg.setText(text);
+        javaMailSender.send(msg);
     }
+
+    private String normalizePhoneNumber(String phone) {
+        // Remover caracteres não numéricos
+        String cleaned = phone.replaceAll("[^0-9+]", "");
+        // Garantir formato E.164 (ex.: +5511999999999)
+        if (!cleaned.startsWith("+")) {
+            // Assumir código do Brasil (+55) se não especificado
+            cleaned = "+55" + cleaned;
+        }
+        return cleaned;
+    }
+}
