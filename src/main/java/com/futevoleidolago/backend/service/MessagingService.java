@@ -53,7 +53,12 @@ public class MessagingService {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(to);
         msg.setSubject(subject);
-        msg.setText(text);
+        String formattedText = String.format(
+                "Olá,\n\n%s\n\nAtenciosamente,\nEquipe Futevôlei do Lago\nfutevoleidolago@gmail.com",
+                text
+        );
+        msg.setText(formattedText);
+        msg.setFrom("Futevôlei do Lago <futevoleidolago@gmail.com>");
         javaMailSender.send(msg);
     }
 
