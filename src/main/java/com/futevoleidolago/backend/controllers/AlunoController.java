@@ -1,58 +1,115 @@
 package com.futevoleidolago.backend.controllers;
 
-import com.futevoleidolago.backend.models.Aluno;
-import com.futevoleidolago.backend.repositories.AlunoRepository;
+import com.futevoleidolago.backend.RequestDTO.AlunoResponseDTO;
+import com.futevoleidolago.backend.RequestDTO.AprovacaoRequestDTO;
+import com.futevoleidolago.backend.RequestDTO.CadastroAlunoRequestDTO;
+import com.futevoleidolago.backend.service.AlunoService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/alunos")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AlunoController {
 
-    private final AlunoRepository alunoRepository;
+    private final AlunoService alunoService;
 
-    public AlunoController(AlunoRepository alunoRepository) {
-        this.alunoRepository = alunoRepository;
+    public AlunoController(AlunoService alunoService) {
+        this.alunoService = alunoService;
+    }
+
+    @PostMapping("/cadastrar")
+    public ResponseEntity<AlunoResponseDTO> cadastrarSolicitacao(@Valid @RequestBody CadastroAlunoRequestDTO request) {
+        try {
+            AlunoResponseDTO response = alunoService.cadastrarSolicitacao(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/solicitacoes/pendentes")
+    public ResponseEntity<List<AlunoResponseDTO>> listarSolicitacoesPendentes() {
+        List<AlunoResponseDTO> solicitacoes = alunoService.listarSolicitacoesPendentes();
+        return ResponseEntity.ok(solicitacoes);
+    }
+
+    @GetMapping("/ativos")
+    public ResponseEntity<List<AlunoResponseDTO>> listarAlunosAtivos() {
+        List<AlunoResponseDTO> alunos = alunoService.listarAlunosAtivos();
+        return ResponseEntity.ok(alunos);
     }
 
     @GetMapping
-    public List<Aluno> list() {
-        return alunoRepository.findAll();
+    public ResponseEntity<List<AlunoResponseDTO>> listarTodosAlunos() {
+        List<AlunoResponseDTO> alunos = alunoService.listarTodosAlunos();
+        return ResponseEntity.ok(alunos);
     }
 
-    @PostMapping
-    public Aluno criarAluno(@RequestBody Aluno aluno) {
-        return alunoRepository.save(aluno);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Aluno> atualizarAluno(@PathVariable Long id, @RequestBody Aluno alunoAtualizado) {
-        Optional<Aluno> alunoExistente = alunoRepository.findById(id);
-
-        if (alunoExistente.isPresent()) {
-            Aluno aluno = alunoExistente.get();
-            aluno.setNome(alunoAtualizado.getNome());
-            aluno.setEmail(alunoAtualizado.getEmail());
-            aluno.setTelefone(alunoAtualizado.getTelefone());
-            aluno.setDataNascimento(alunoAtualizado.getDataNascimento());
-            aluno.setAtivo(alunoAtualizado.getAtivo());
-            Aluno alunoSalvo = alunoRepository.save(aluno);
-            return ResponseEntity.ok(alunoSalvo);
-        } else {
+    @GetMapping("/{id}")
+    public ResponseEntity<AlunoResponseDTO> buscarPorId(@PathVariable Long id) {
+        try {
+            AlunoResponseDTO aluno = alunoService.buscarPorId(id);
+            return ResponseEntity.ok(aluno);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> removerAluno(@PathVariable Long id) {
-        if (alunoRepository.existsById(id)) {
-            alunoRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } else {
+    @GetMapping("/email/{email}")
+    public ResponseEntity<AlunoResponseDTO> buscarPorEmail(@PathVariable String email) {
+        try {
+            AlunoResponseDTO aluno = alunoService.buscarPorEmail(email);
+            return ResponseEntity.ok(aluno);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/{id}/aprovar")
+    public ResponseEntity<AlunoResponseDTO> aprovarSolicitacao(@PathVariable Long id) {
+        try {
+            AlunoResponseDTO aluno = alunoService.aprovarSolicitacao(id);
+            return ResponseEntity.ok(aluno);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/{id}/rejeitar")
+    public ResponseEntity<AlunoResponseDTO> rejeitarSolicitacao(
+            @PathVariable Long id, 
+            @RequestBody AprovacaoRequestDTO request) {
+        try {
+            String motivo = request.getMotivoRejeicao() != null ? 
+                request.getMotivoRejeicao() : "Não especificado";
+            AlunoResponseDTO aluno = alunoService.rejeitarSolicitacao(id, motivo);
+            return ResponseEntity.ok(aluno);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/{id}/processar")
+    public ResponseEntity<AlunoResponseDTO> processarSolicitacao(
+            @PathVariable Long id, 
+            @RequestBody AprovacaoRequestDTO request) {
+        try {
+            if (request.getAprovado()) {
+                return ResponseEntity.ok(alunoService.aprovarSolicitacao(id));
+            } else {
+                String motivo = request.getMotivoRejeicao() != null ? 
+                    request.getMotivoRejeicao() : "Não especificado";
+                return ResponseEntity.ok(alunoService.rejeitarSolicitacao(id, motivo));
+            }
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                .body(null);
         }
     }
 }

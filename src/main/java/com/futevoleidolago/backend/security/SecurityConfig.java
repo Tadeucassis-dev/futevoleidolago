@@ -17,8 +17,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/login", "/api/register").permitAll()
-                        .anyRequest().permitAll());
-
+                        .requestMatchers("/api/alunos/cadastrar").permitAll() // Permite cadastro público
+                        .requestMatchers("/api/alunos/email/**").permitAll() // Permite consulta por email
+                        .anyRequest().permitAll()); // Por enquanto, permite tudo para desenvolvimento
 
         return http.build();
     }

@@ -1,24 +1,14 @@
-package com.futevoleidolago.backend.models;
+package com.futevoleidolago.backend.RequestDTO;
 
-import com.futevoleidolago.backend.enums.StatusSolicitacao;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "aluno")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class Aluno {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class CadastroAlunoRequestDTO {
     @NotBlank(message = "Nome é obrigatório")
     @Size(min = 2, max = 100, message = "Nome deve ter entre 2 e 100 caracteres")
     private String nome;
@@ -34,20 +24,10 @@ public class Aluno {
 
     @Min(value = 5, message = "Idade mínima é 5 anos")
     @Max(value = 80, message = "Idade máxima é 80 anos")
+    @NotNull(message = "Idade é obrigatória")
     private Integer idade;
 
     @NotBlank(message = "Instituição de ensino é obrigatória")
     @Size(min = 2, max = 200, message = "Instituição de ensino deve ter entre 2 e 200 caracteres")
     private String instituicaoEnsino;
-
-    @Enumerated(EnumType.STRING)
-    private StatusSolicitacao statusSolicitacao = StatusSolicitacao.PENDENTE;
-
-    private LocalDateTime dataSolicitacao = LocalDateTime.now();
-
-    private LocalDateTime dataAprovacao;
-
-    private String motivoRejeicao;
-
-    private Boolean ativo = false; // Só fica true quando aprovado
 }
