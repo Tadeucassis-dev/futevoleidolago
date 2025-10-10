@@ -24,12 +24,19 @@ public class AlunoController {
     }
 
     @PostMapping("/cadastrar")
-    public ResponseEntity<AlunoResponseDTO> cadastrarSolicitacao(@Valid @RequestBody CadastroAlunoRequestDTO request) {
+    public ResponseEntity<Map<String, Object>> cadastrarSolicitacao(@Valid @RequestBody CadastroAlunoRequestDTO request) {
         try {
             AlunoResponseDTO response = alunoService.cadastrarSolicitacao(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "success", true,
+                "message", "Solicitação de cadastro enviada com sucesso! Aguarde a aprovação.",
+                "aluno", response
+            ));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
         }
     }
 
