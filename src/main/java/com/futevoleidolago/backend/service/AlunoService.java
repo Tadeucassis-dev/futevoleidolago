@@ -7,7 +7,9 @@ import com.futevoleidolago.backend.models.Aluno;
 import com.futevoleidolago.backend.repositories.AlunoRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,7 +34,11 @@ public class AlunoService {
         aluno.setEmail(request.getEmail());
         aluno.setTelefone(request.getTelefone());
         aluno.setDataNascimento(request.getDataNascimento());
-        aluno.setIdade(request.getIdade());
+        
+        // Calcular idade automaticamente a partir da data de nascimento
+        Integer idadeCalculada = calcularIdade(request.getDataNascimento());
+        aluno.setIdade(idadeCalculada);
+        
         aluno.setInstituicaoEnsino(request.getInstituicaoEnsino());
         aluno.setStatusSolicitacao(StatusSolicitacao.PENDENTE);
         aluno.setDataSolicitacao(LocalDateTime.now());
@@ -108,6 +114,17 @@ public class AlunoService {
         return convertToResponseDTO(aluno);
     }
 
+    public void deletarAlunoRejeitado(Long id) {
+        Aluno aluno = alunoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
+
+        if (aluno.getStatusSolicitacao() != StatusSolicitacao.REJEITADO) {
+            throw new RuntimeException("Apenas alunos rejeitados podem ser deletados");
+        }
+
+        alunoRepository.delete(aluno);
+    }
+
     private AlunoResponseDTO convertToResponseDTO(Aluno aluno) {
         return new AlunoResponseDTO(
                 aluno.getId(),
@@ -123,5 +140,30 @@ public class AlunoService {
                 aluno.getMotivoRejeicao(),
                 aluno.getAtivo()
         );
+    }
+    
+    /**
+     * Calcula a idade a partir da data de nascimento
+     * @param dataNascimento Data de nascimento do aluno
+     * @return Idade em anos
+     */
+    private Integer calcularIdade(java.time.LocalDate dataNascimento) {
+        if (dataNascimento == null) {
+            return null;
+        }
+        
+        LocalDate hoje = LocalDate.now();
+        Period periodo = Period.between(dataNascimento, hoje);
+        int idade = periodo.getYears();
+        
+        // Validação de idade mínima e máxima
+        if (idade < 5) {
+            throw new RuntimeException("Idade mínima é 5 anos");
+        }
+        if (idade > 80) {
+            throw new RuntimeException("Idade máxima é 80 anos");
+        }
+        
+        return idade;
     }
 }

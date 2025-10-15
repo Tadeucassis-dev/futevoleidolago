@@ -114,4 +114,20 @@ public class AlunoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> deletarAlunoRejeitado(@PathVariable Long id) {
+        try {
+            alunoService.deletarAlunoRejeitado(id);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Aluno rejeitado deletado com sucesso!"
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
 }

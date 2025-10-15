@@ -18,23 +18,35 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String adminEmail = "admin@futevoleidolago.com";
-        String adminPassword = "admin123";
+        // Criar usuário admin padrão
+        createUserIfNotExists("tadeucassis@gmail.com", "85792426", "Administrador");
         
-        // Verificar se já existe um admin
-        if (userRepository.findByEmail(adminEmail).isEmpty()) {
-            User admin = new User();
-            admin.setName("Administrador");
-            admin.setEmail(adminEmail);
-            admin.setPassword(passwordEncoder.encode(adminPassword));
+        // 🔧 ADICIONE SEUS USUÁRIOS AQUI:
+        // Descomente e modifique as linhas abaixo para criar novos usuários
+        
+        // createUserIfNotExists("seu.email@exemplo.com", "suaSenha123", "Seu Nome");
+        // createUserIfNotExists("outro@exemplo.com", "outraSenha456", "Outro Nome");
+        
+        // Exemplo de usuários que você pode criar:
+        // createUserIfNotExists("tadeu@futevoleidolago.com", "tadeu123", "Tadeu Cesar");
+        // createUserIfNotExists("gerente@futevoleidolago.com", "gerente123", "Gerente");
+    }
+    
+    private void createUserIfNotExists(String email, String password, String name) {
+        if (userRepository.findByEmail(email).isEmpty()) {
+            User user = new User();
+            user.setName(name);
+            user.setEmail(email);
+            user.setPassword(passwordEncoder.encode(password));
             
-            userRepository.save(admin);
-            System.out.println("✅ Usuário admin criado:");
-            System.out.println("   Email: " + adminEmail);
-            System.out.println("   Senha: " + adminPassword);
+            userRepository.save(user);
+            System.out.println("✅ Usuário criado:");
+            System.out.println("   Nome: " + name);
+            System.out.println("   Email: " + email);
+            System.out.println("   Senha: " + password);
             System.out.println("   ⚠️  IMPORTANTE: Mude esta senha após o primeiro login!");
         } else {
-            System.out.println("ℹ️  Usuário admin já existe no sistema");
+            System.out.println("ℹ️  Usuário " + email + " já existe no sistema");
         }
     }
 }

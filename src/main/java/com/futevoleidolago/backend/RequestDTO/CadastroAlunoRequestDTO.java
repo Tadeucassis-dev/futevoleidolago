@@ -20,11 +20,10 @@ public class CadastroAlunoRequestDTO {
     private String telefone;
 
     @Past(message = "Data de nascimento deve ser no passado")
+    @NotNull(message = "Data de nascimento é obrigatória")
     private LocalDate dataNascimento;
 
-    @Min(value = 5, message = "Idade mínima é 5 anos")
-    @Max(value = 80, message = "Idade máxima é 80 anos")
-    @NotNull(message = "Idade é obrigatória")
+    // Idade será calculada automaticamente a partir da data de nascimento
     private Integer idade;
 
     @NotBlank(message = "Instituição de ensino é obrigatória")
