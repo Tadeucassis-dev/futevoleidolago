@@ -2,8 +2,6 @@ package com.futevoleidolago.backend.service;
 
 import com.futevoleidolago.backend.repositories.AlunoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -12,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 public class MessagingService {
-    private final JavaMailSender javaMailSender;
     private final AlunoRepository alunoRepository;
 
     // Substitua pelo seu API key da CallMeBot
@@ -20,8 +17,7 @@ public class MessagingService {
     private static final String CALLMEBOT_URL = "https://api.callmebot.com/whatsapp.php";
 
     @Autowired
-    public MessagingService(JavaMailSender javaMailSender, AlunoRepository alunoRepository) {
-        this.javaMailSender = javaMailSender;
+    public MessagingService(AlunoRepository alunoRepository) {
         this.alunoRepository = alunoRepository;
     }
 
@@ -50,16 +46,12 @@ public class MessagingService {
     }
 
     public void sendEmail(String to, String subject, String text) {
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo(to);
-        msg.setSubject(subject);
-        String formattedText = String.format(
-                "Olá,\n\n%s\n\nAtenciosamente,\nEquipe Futevôlei do Lago\nfutevoleidolago@gmail.com",
-                text
-        );
-        msg.setText(formattedText);
-        msg.setFrom("Futevôlei do Lago <futevoleidolago@gmail.com>");
-        javaMailSender.send(msg);
+        // Email temporariamente desabilitado - JavaMailSender não configurado
+        System.out.println("📧 EMAIL SIMULADO:");
+        System.out.println("   Para: " + to);
+        System.out.println("   Assunto: " + subject);
+        System.out.println("   Mensagem: " + text);
+        System.out.println("   ⚠️  Configure JavaMailSender para enviar emails reais");
     }
 
     private String normalizePhoneNumber(String phone) {

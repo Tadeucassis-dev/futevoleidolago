@@ -23,12 +23,12 @@ public class PaymentController {
         return ResponseEntity.ok(payment);
     }
 
-    @GetMapping("/student/{studentId}")
+    @org.springframework.web.bind.annotation.GetMapping(value = "/student/{studentId}")
     public ResponseEntity<List<Payment>> getPaymentsByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(paymentService.getPaymentsByStudent(studentId));
     }
 
-    @GetMapping("/status/{paymentId}")
+    @org.springframework.web.bind.annotation.GetMapping(value = "/status/{paymentId}")
     public ResponseEntity<Payment> getPaymentStatus(@PathVariable Long paymentId) {
         return ResponseEntity.ok(paymentService.getPaymentStatus(paymentId));
     }

@@ -1,33 +1,25 @@
-package com.futevoleidolago.backend.models;
+package com.futevoleidolago.backend.RequestDTO;
 
 import com.futevoleidolago.backend.enums.StatusSolicitacao;
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "aluno")
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class Aluno {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class AlunoResponseDTO {
     private Long id;
-    
     private String nome;
     private String email;
     private String telefone;
     private LocalDate dataNascimento;
     private Integer idade;
     private String instituicaoEnsino;
-    
-    @Enumerated(EnumType.STRING)
     private StatusSolicitacao statusSolicitacao;
-    
     private LocalDateTime dataSolicitacao;
     private LocalDateTime dataAprovacao;
     private String motivoRejeicao;
